@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const getMovieByTitle = async (title) => {
-  const response = await fetch(`https://project-express-api-y6ibchp5wa-lz.a.run.app/movies/${title}`);
+const getAllMovies = async () => {
+  const response = await fetch('https://project-express-api-y6ibchp5wa-lz.a.run.app/movies');
   const data = await response.json();
   if (data.status === 'success') {
-    return data;
+    return data.body.movies;
   } else {
     throw new Error(data.message);
   }
@@ -12,17 +12,33 @@ const getMovieByTitle = async (title) => {
 
 export const App = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [movie, setMovie] = useState(null);
+  const [movies, setMovies] = useState([]);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchMovies = async () => {
+      try {
+        const allMovies = await getAllMovies();
+        setMovies(allMovies);
+      } catch (err) {
+        setError('Failed to fetch movies');
+      }
+    };
+    fetchMovies();
+  }, []);
 
   const handleSearch = async (title) => {
     try {
-      const data = await getMovieByTitle(title);
-      setMovie(data.body.movie);
-      setError('');
+      const response = await fetch(`https://project-express-api-y6ibchp5wa-lz.a.run.app/movies/${title}`);
+      const data = await response.json();
+      if (data.status === 'success') {
+        setMovies([data.body.movie]);
+        setError('');
+      } else {
+        setError('No movie found');
+      }
     } catch (err) {
-      setMovie(null);
-      setError('No movie found');
+      setError('Failed to fetch movie');
     }
   };
 
@@ -41,12 +57,14 @@ export const App = () => {
         <button type="submit">Search</button>
       </form>
       {error && <p>{error}</p>}
-      {movie && (
-        <div>
-          <h2>{movie.title}</h2>
-          <h2>{movie.release_year}</h2>
-          <p>{movie.description}</p>
-        </div>
+      {movies.length > 0 ? (
+        <ul>
+          {movies.map((movie) => (
+            <li key={movie.id}>{movie.title}</li>
+          ))}
+        </ul>
+      ) : (
+        <p>No movies found</p>
       )}
     </div>
   );
