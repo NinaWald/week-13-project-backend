@@ -1,50 +1,40 @@
-import React, { useState } from 'react';
-import { getMovieByTitle, getAllMovies } from './components/Api';
+import React, { useState, useEffect } from 'react';
 
 export const App = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [movie, setMovie] = useState(null);
   const [moviesList, setMoviesList] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
 
-  const handleSearch = async (title) => {
-    const data = await getMovieByTitle(title);
-    setMovie(data.body.movie);
+  useEffect(() => {
+    fetch('https://project-express-api-y6ibchp5wa-lz.a.run.app/movies')
+      .then((response) => response.json())
+      .then((data) => {
+        setMoviesList(data)
+      })
+  }, [])
+
+  const handleSearch = (event) => {
+    setSearchTerm(event.target.value);
   };
 
-  const handleGetAllMovies = async () => {
-    const data = await getAllMovies();
-    setMoviesList(data.body.movies);
-  };
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    handleSearch(searchTerm);
-  };
+  const filteredMovies = moviesList.filter((movie) =>
+    // eslint-disable-next-line implicit-arrow-linebreak
+    movie.title.toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
-    <div className="App">
-      <form onSubmit={handleSubmit}>
-        <label htmlFor="form">
-          Search for a movie:
-          <input type="text" value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} />
-        </label>
-        <button type="submit">Search</button>
+    <div>
+      <form>
+        <input
+          type="text"
+          placeholder="Search for a movie..."
+          value={searchTerm}
+          onChange={handleSearch} />
       </form>
-      <button type="button" onClick={handleGetAllMovies}>Show all movies</button>
-      {movie && (
-        <div>
+      {filteredMovies.map((movie) => (
+        <div key={movie.show_id}>
           <h2>{movie.title}</h2>
-          <h2>{movie.release_year}</h2>
           <p>{movie.description}</p>
         </div>
-      )}
-      {moviesList.length > 0 && (
-        <ul>
-          {moviesList.map((listMovie) => (
-            <li key={listMovie.title}>{listMovie.title}</li>
-          ))}
-        </ul>
-      )}
+      ))}
     </div>
   );
 };
