@@ -1,71 +1,30 @@
-import React, { useState, useEffect } from 'react';
-
-const getAllMovies = async () => {
-  const response = await fetch('https://project-express-api-y6ibchp5wa-lz.a.run.app/movies');
-  const data = await response.json();
-  if (data.status === 'success') {
-    return data.body.movies;
-  } else {
-    throw new Error(data.message);
-  }
-};
+import React from 'react';
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import AllMovies from './components/AllMovies';
+import { SearchMovies } from './components/SearchMovies';
 
 export const App = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [movies, setMovies] = useState([]);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    const fetchMovies = async () => {
-      try {
-        const allMovies = await getAllMovies();
-        setMovies(allMovies);
-      } catch (err) {
-        setError('Failed to fetch movies');
-      }
-    };
-    fetchMovies();
-  }, []);
-
-  const handleSearch = async (title) => {
-    try {
-      const response = await fetch(`https://project-express-api-y6ibchp5wa-lz.a.run.app/movies/${title}`);
-      const data = await response.json();
-      if (data.status === 'success') {
-        setMovies([data.body.movie]);
-        setError('');
-      } else {
-        setError('No movie found');
-      }
-    } catch (err) {
-      setError('Failed to fetch movie');
-    }
-  };
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    handleSearch(searchTerm);
-  };
-
   return (
-    <div className="App">
-      <form onSubmit={handleSubmit}>
-        <label htmlFor="form">
-          Search for a movie:
-          <input type="text" value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} />
-        </label>
-        <button type="submit">Search</button>
-      </form>
-      {error && <p>{error}</p>}
-      {movies.length > 0 ? (
-        <ul>
-          {movies.map((movie) => (
-            <li key={movie.id}>{movie.title}</li>
-          ))}
-        </ul>
-      ) : (
-        <p>No movies found</p>
-      )}
+    <div className="firstpage">
+      <BrowserRouter>
+        <h1>hello and welcome to movie api</h1>
+        <nav>
+          <ul>
+            <li>
+              <Link to="/all-movies">All Movies</Link>
+            </li>
+            <li>
+              <Link to="/search-movies">Search Movies</Link>
+            </li>
+          </ul>
+        </nav>
+        <Routes>
+          <Route path="/" exact> </Route>
+          <Route path="/all-movies" element={<AllMovies />} />
+          <Route path="/search-movies" element={<SearchMovies />} />
+        </Routes>
+      </BrowserRouter>
     </div>
   );
 };
+
